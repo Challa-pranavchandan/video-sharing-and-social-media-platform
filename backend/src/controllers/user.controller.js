@@ -64,10 +64,21 @@ const registerUser = asyncHandler(async (req, res) => {
 
    return res.status(201).json(new ApiResponse(201, createduser, "User registered successfully"));
 });
+ const loginUser = asyncHandler(async (req, res) => {
+    // req.body -->data
+    // find user by email
+    // if user not found, throw error
+    // if user found, compare password
+    // if password not match, throw error
+    // if password match, generate access token and refresh token
+    // send cookie with refresh token and send access token in response
+    res.status(200).json({
+        message: "User logged in successfully"
+    });
+});
 
 
-
-export { registerUser }
+export { registerUser, loginUser };
 
 
 
