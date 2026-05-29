@@ -1,0 +1,1262 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Video Social Platform API",
+    "description": "Complete API collection for the Video Sharing & Social Media Platform.\n\n## Base URL\n`{{baseUrl}}` — default: `http://localhost:8000/api/v1`\n\n## Authentication\nMost routes require a JWT Bearer token. After calling **Login**, the collection auto-saves `accessToken` and `refreshToken` as collection variables so all subsequent requests use them automatically.\n\n## Recommended Test Sequence\n1. Health Check\n2. Register User\n3. Login User\n4. (All authenticated flows)\n5. Logout User",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl",      "value": "http://localhost:8000/api/v1", "type": "string" },
+    { "key": "accessToken",  "value": "", "type": "string" },
+    { "key": "refreshToken", "value": "", "type": "string" },
+    { "key": "userId",       "value": "", "type": "string" },
+    { "key": "username",     "value": "testuser",  "type": "string" },
+    { "key": "videoId",      "value": "", "type": "string" },
+    { "key": "commentId",    "value": "", "type": "string" },
+    { "key": "tweetId",      "value": "", "type": "string" },
+    { "key": "playlistId",   "value": "", "type": "string" },
+    { "key": "channelId",    "value": "", "type": "string" }
+  ],
+  "item": [
+
+    {
+      "name": "00 - Health Check",
+      "item": [
+        {
+          "name": "Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response has statusCode field', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('statusCode');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/healthcheck", "host": ["{{baseUrl}}"], "path": ["healthcheck"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "01 - Users",
+      "item": [
+
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test('User created', () => pm.expect(json.data).to.have.property('_id'));",
+                  "if (json.data && json.data._id) {",
+                  "    pm.collectionVariables.set('userId', json.data._id);",
+                  "    pm.collectionVariables.set('username', json.data.username);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "fullname",   "value": "Test User",             "type": "text" },
+                { "key": "email",      "value": "testuser@example.com",  "type": "text" },
+                { "key": "username",   "value": "testuser",              "type": "text" },
+                { "key": "password",   "value": "Password@123",          "type": "text" },
+                { "key": "avatar",     "src":   [],                      "type": "file", "description": "Upload an avatar image file" },
+                { "key": "coverImage", "src":   [],                      "type": "file", "description": "Upload a cover image file (optional)" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/users/register", "host": ["{{baseUrl}}"], "path": ["users","register"] }
+          }
+        },
+
+        {
+          "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Tokens present', () => {",
+                  "    pm.expect(json.data).to.have.property('accessToken');",
+                  "    pm.expect(json.data).to.have.property('refreshToken');",
+                  "});",
+                  "if (json.data) {",
+                  "    pm.collectionVariables.set('accessToken',  json.data.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
+                  "    pm.collectionVariables.set('userId',       json.data.user._id);",
+                  "    pm.collectionVariables.set('username',     json.data.user.username);",
+                  "    pm.collectionVariables.set('channelId',    json.data.user._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/users/login", "host": ["{{baseUrl}}"], "path": ["users","login"] }
+          }
+        },
+
+        {
+          "name": "Get Current User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('User data returned', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.have.property('_id');",
+                  "    pm.expect(json.data).to.not.have.property('password');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/users/current-user", "host": ["{{baseUrl}}"], "path": ["users","current-user"] }
+          }
+        },
+
+        {
+          "name": "Get User Channel Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Channel data returned', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.have.property('username');",
+                  "    pm.expect(json.data).to.have.property('subscribersCount');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/users/channel/{{username}}", "host": ["{{baseUrl}}"], "path": ["users","channel","{{username}}"] }
+          }
+        },
+
+        {
+          "name": "Update Account Details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Account updated', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data.fullname).to.equal('Updated User');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullname\": \"Updated User\",\n  \"email\": \"testuser@example.com\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/users/update-account", "host": ["{{baseUrl}}"], "path": ["users","update-account"] }
+          }
+        },
+
+        {
+          "name": "Update Avatar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Avatar URL present', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.have.property('avatar');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "avatar", "src": [], "type": "file", "description": "New avatar image file" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/users/update-avatar", "host": ["{{baseUrl}}"], "path": ["users","update-avatar"] }
+          }
+        },
+
+        {
+          "name": "Update Cover Image",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Cover image URL present', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.have.property('coverImage');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "coverImage", "src": [], "type": "file", "description": "New cover image file" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/users/update-cover", "host": ["{{baseUrl}}"], "path": ["users","update-cover"] }
+          }
+        },
+
+        {
+          "name": "Change Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Password changed message', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('Password updated');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"Password@123\",\n  \"newPassword\": \"NewPassword@456\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/users/change-password", "host": ["{{baseUrl}}"], "path": ["users","change-password"] }
+          }
+        },
+
+        {
+          "name": "Refresh Access Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('New tokens returned', () => {",
+                  "    pm.expect(json.data).to.have.property('accessToken');",
+                  "});",
+                  "if (json.data) {",
+                  "    pm.collectionVariables.set('accessToken',  json.data.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/users/refresh-token", "host": ["{{baseUrl}}"], "path": ["users","refresh-token"] }
+          }
+        },
+
+        {
+          "name": "Get Watch History",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Watch history is array', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/users/watch-history", "host": ["{{baseUrl}}"], "path": ["users","watch-history"] }
+          }
+        },
+
+        {
+          "name": "Logout User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Logout message', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('logged out');",
+                  "});",
+                  "pm.collectionVariables.set('accessToken', '');",
+                  "pm.collectionVariables.set('refreshToken', '');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/users/logout", "host": ["{{baseUrl}}"], "path": ["users","logout"] }
+          }
+        }
+
+      ]
+    },
+
+    {
+      "name": "02 - Videos",
+      "item": [
+
+        {
+          "name": "Get All Videos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Videos array returned', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/videos?page=1&limit=10&sortBy=createdAt&sortType=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["videos"],
+              "query": [
+                { "key": "page",     "value": "1" },
+                { "key": "limit",    "value": "10" },
+                { "key": "sortBy",   "value": "createdAt" },
+                { "key": "sortType", "value": "desc" },
+                { "key": "query",    "value": "", "disabled": true },
+                { "key": "userId",   "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+
+        {
+          "name": "Publish a Video",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201 or 200', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "pm.test('Video created', () => pm.expect(json.data).to.have.property('_id'));",
+                  "if (json.data && json.data._id) {",
+                  "    pm.collectionVariables.set('videoId', json.data._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "videoFile",    "src": [],                      "type": "file",  "description": "Video file to upload" },
+                { "key": "thumbnail",    "src": [],                      "type": "file",  "description": "Thumbnail image" },
+                { "key": "title",        "value": "My First Video",      "type": "text" },
+                { "key": "description",  "value": "This is a test video description", "type": "text" },
+                { "key": "isPublished",  "value": "true",                "type": "text" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/videos", "host": ["{{baseUrl}}"], "path": ["videos"] }
+          }
+        },
+
+        {
+          "name": "Get Video By ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Video data returned', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.have.property('_id');",
+                  "    pm.expect(json.data).to.have.property('title');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/videos/{{videoId}}", "host": ["{{baseUrl}}"], "path": ["videos","{{videoId}}"] }
+          }
+        },
+
+        {
+          "name": "Update Video",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Video updated', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data.title).to.equal('Updated Video Title');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "title",       "value": "Updated Video Title",       "type": "text" },
+                { "key": "description", "value": "Updated description",        "type": "text" },
+                { "key": "thumbnail",   "src": [],                             "type": "file", "disabled": true }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/videos/{{videoId}}", "host": ["{{baseUrl}}"], "path": ["videos","{{videoId}}"] }
+          }
+        },
+
+        {
+          "name": "Toggle Publish Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Publish status toggled', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.have.property('isPublished');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "PATCH",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/videos/toggle/publish/{{videoId}}", "host": ["{{baseUrl}}"], "path": ["videos","toggle","publish","{{videoId}}"] }
+          }
+        },
+
+        {
+          "name": "Delete Video",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Deletion confirmed', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('deleted');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/videos/{{videoId}}", "host": ["{{baseUrl}}"], "path": ["videos","{{videoId}}"] }
+          }
+        }
+
+      ]
+    },
+
+    {
+      "name": "03 - Comments",
+      "item": [
+
+        {
+          "name": "Get Video Comments",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Comments returned', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.be.an('array').or.to.be.an('object');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/comments/{{videoId}}?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["comments","{{videoId}}"],
+              "query": [
+                { "key": "page",  "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+
+        {
+          "name": "Add Comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201 or 200', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "pm.test('Comment created', () => pm.expect(json.data).to.have.property('_id'));",
+                  "if (json.data && json.data._id) {",
+                  "    pm.collectionVariables.set('commentId', json.data._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"This is a test comment!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/comments/{{videoId}}", "host": ["{{baseUrl}}"], "path": ["comments","{{videoId}}"] }
+          }
+        },
+
+        {
+          "name": "Update Comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Comment updated', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data.content).to.equal('Updated comment content');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Updated comment content\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/comments/c/{{commentId}}", "host": ["{{baseUrl}}"], "path": ["comments","c","{{commentId}}"] }
+          }
+        },
+
+        {
+          "name": "Delete Comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Deletion confirmed', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('deleted');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/comments/c/{{commentId}}", "host": ["{{baseUrl}}"], "path": ["comments","c","{{commentId}}"] }
+          }
+        }
+
+      ]
+    },
+
+    {
+      "name": "04 - Likes",
+      "item": [
+
+        {
+          "name": "Toggle Video Like",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Like toggled', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('data');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/likes/toggle/v/{{videoId}}", "host": ["{{baseUrl}}"], "path": ["likes","toggle","v","{{videoId}}"] }
+          }
+        },
+
+        {
+          "name": "Toggle Comment Like",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Like toggled', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('data');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/likes/toggle/c/{{commentId}}", "host": ["{{baseUrl}}"], "path": ["likes","toggle","c","{{commentId}}"] }
+          }
+        },
+
+        {
+          "name": "Toggle Tweet Like",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Like toggled', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('data');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/likes/toggle/t/{{tweetId}}", "host": ["{{baseUrl}}"], "path": ["likes","toggle","t","{{tweetId}}"] }
+          }
+        },
+
+        {
+          "name": "Get Liked Videos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Liked videos returned', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/likes/videos", "host": ["{{baseUrl}}"], "path": ["likes","videos"] }
+          }
+        }
+
+      ]
+    },
+
+    {
+      "name": "05 - Tweets",
+      "item": [
+
+        {
+          "name": "Create Tweet",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201 or 200', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "pm.test('Tweet created', () => pm.expect(json.data).to.have.property('_id'));",
+                  "if (json.data && json.data._id) {",
+                  "    pm.collectionVariables.set('tweetId', json.data._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Hello world! This is my first tweet from the API.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/tweets", "host": ["{{baseUrl}}"], "path": ["tweets"] }
+          }
+        },
+
+        {
+          "name": "Get User Tweets",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Tweets array returned', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/tweets/user/{{userId}}", "host": ["{{baseUrl}}"], "path": ["tweets","user","{{userId}}"] }
+          }
+        },
+
+        {
+          "name": "Update Tweet",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Tweet updated', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.have.property('content');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Updated tweet content!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/tweets/{{tweetId}}", "host": ["{{baseUrl}}"], "path": ["tweets","{{tweetId}}"] }
+          }
+        },
+
+        {
+          "name": "Delete Tweet",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Deletion confirmed', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('deleted');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/tweets/{{tweetId}}", "host": ["{{baseUrl}}"], "path": ["tweets","{{tweetId}}"] }
+          }
+        }
+
+      ]
+    },
+
+    {
+      "name": "06 - Playlists",
+      "item": [
+
+        {
+          "name": "Create Playlist",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201 or 200', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "pm.test('Playlist created', () => pm.expect(json.data).to.have.property('_id'));",
+                  "if (json.data && json.data._id) {",
+                  "    pm.collectionVariables.set('playlistId', json.data._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My Test Playlist\",\n  \"description\": \"A playlist created via API testing\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/playlists", "host": ["{{baseUrl}}"], "path": ["playlists"] }
+          }
+        },
+
+        {
+          "name": "Get User Playlists",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Playlists returned', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/playlists/user/{{userId}}", "host": ["{{baseUrl}}"], "path": ["playlists","user","{{userId}}"] }
+          }
+        },
+
+        {
+          "name": "Get Playlist By ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Playlist data returned', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.have.property('_id');",
+                  "    pm.expect(json.data).to.have.property('name');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/playlists/{{playlistId}}", "host": ["{{baseUrl}}"], "path": ["playlists","{{playlistId}}"] }
+          }
+        },
+
+        {
+          "name": "Add Video to Playlist",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Video added to playlist', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.have.property('videos');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "PATCH",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/playlists/add/{{videoId}}/{{playlistId}}", "host": ["{{baseUrl}}"], "path": ["playlists","add","{{videoId}}","{{playlistId}}"] }
+          }
+        },
+
+        {
+          "name": "Remove Video from Playlist",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Video removed from playlist', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('data');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "PATCH",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/playlists/remove/{{videoId}}/{{playlistId}}", "host": ["{{baseUrl}}"], "path": ["playlists","remove","{{videoId}}","{{playlistId}}"] }
+          }
+        },
+
+        {
+          "name": "Update Playlist",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Playlist updated', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data.name).to.equal('Updated Playlist Name');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Playlist Name\",\n  \"description\": \"Updated playlist description\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/playlists/{{playlistId}}", "host": ["{{baseUrl}}"], "path": ["playlists","{{playlistId}}"] }
+          }
+        },
+
+        {
+          "name": "Delete Playlist",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Deletion confirmed', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('deleted');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/playlists/{{playlistId}}", "host": ["{{baseUrl}}"], "path": ["playlists","{{playlistId}}"] }
+          }
+        }
+
+      ]
+    },
+
+    {
+      "name": "07 - Subscriptions",
+      "item": [
+
+        {
+          "name": "Toggle Subscription",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Subscription toggled', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('data');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/subscriptions/c/{{channelId}}", "host": ["{{baseUrl}}"], "path": ["subscriptions","c","{{channelId}}"] }
+          }
+        },
+
+        {
+          "name": "Get Channel Subscribers",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Subscribers list returned', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/subscriptions/c/{{channelId}}/subscribers", "host": ["{{baseUrl}}"], "path": ["subscriptions","c","{{channelId}}","subscribers"] }
+          }
+        },
+
+        {
+          "name": "Get Subscribed Channels",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Subscribed channels returned', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/subscriptions/u/{{userId}}/channels", "host": ["{{baseUrl}}"], "path": ["subscriptions","u","{{userId}}","channels"] }
+          }
+        }
+
+      ]
+    },
+
+    {
+      "name": "08 - Dashboard",
+      "item": [
+
+        {
+          "name": "Get Channel Stats",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Stats object returned', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.be.an('object');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/dashboard/stats", "host": ["{{baseUrl}}"], "path": ["dashboard","stats"] }
+          }
+        },
+
+        {
+          "name": "Get Channel Videos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Videos array returned', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/dashboard/videos", "host": ["{{baseUrl}}"], "path": ["dashboard","videos"] }
+          }
+        }
+
+      ]
+    }
+
+  ]
+}
