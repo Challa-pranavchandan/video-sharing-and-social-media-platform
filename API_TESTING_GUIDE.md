@@ -419,6 +419,6 @@ Pull requests are welcome! For major changes, please open an issue first to disc
 
 ## 📬 Contact
 
-Built by **Challa Pranav Chandan** — feel free to connect on [LinkedIn](https://linkedin.com) or raise an issue on GitHub.
+Built by **Challa Pranav Chandan** — feel free to connect on [LinkedIn](https://www.linkedin.com/in/challa007) or raise an issue on GitHub.
 
 > ⭐ If you find this project useful, please give it a star on GitHub!
