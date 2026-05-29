@@ -1,27 +1,27 @@
-import mongoose, {Schema} from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
 const userSchema = new Schema({
 
     username: {
-        type : String,
-        required : true,
-        unique : true,
+        type: String,
+        required: true,
+        unique: true,
         lowercase: true,
         trim: true,
         index: true
     },
     email: {
-        type : String,
-        required : true,
-        unique : true,
+        type: String,
+        required: true,
+        unique: true,
         lowercase: true,
         trim: true,
     },
     fullname: {
-        type : String,
-        required : true,
+        type: String,
+        required: true,
         trim: true,
         index: true
     },
@@ -32,7 +32,7 @@ const userSchema = new Schema({
     coverImage: {
         type: String,
     },
-    watchHistory:[
+    watchHistory: [
         {
             type: Schema.Types.ObjectId,
             ref: "Video"
@@ -40,7 +40,7 @@ const userSchema = new Schema({
     ],
     password: {
         type: String,
-        required : [true,"Password is required"]
+        required: [true, "Password is required"]
     },
     refreshToken: {
         type: String,
@@ -49,20 +49,20 @@ const userSchema = new Schema({
     timestamps: true
 });
 
-userSchema.pre("save",async function(next){
-    if(!this.isModified("password")){
-        return next();
+userSchema.pre("save", async function (next) {
+    if (!this.isModified("password")) {
+        return next;
     }
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
-    next();
+    next;
 });
 
-userSchema.methods.comparePassword = async function(Password){
-    return await bcrypt.compare(Password, this.password);
+userSchema.methods.isPasswordCorrect = async function (password) {
+    return await bcrypt.compare(password, this.password);
 };
 
-userSchema.methods.generateAccessToken = function(){
+userSchema.methods.generateAccessToken = function () {
     return jwt.sign(
         {
             id: this._id,
@@ -71,23 +71,22 @@ userSchema.methods.generateAccessToken = function(){
             fullname: this.fullname,
 
         },
-         process.env.ACCESS_TOKEN_SECRET, 
+        process.env.ACCESS_TOKEN_SECRET,
         {
-            expiresIn: PROCESS.env.ACCESS_TOKEN_EXPIRES_IN
+            expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN
         }
     );
 };
 
-userSchema.methods.generateRefreshToken = function()
-{
+userSchema.methods.generateRefreshToken = function () {
     return jwt.sign(
-    {
-        id: this._id
-    }, 
-    process.env.REFRESH_TOKEN_SECRET,
-     {
-        expiresIn: PROCESS.env.REFRESH_TOKEN_EXPIRES_IN
-    }
+        {
+            id: this._id
+        },
+        process.env.REFRESH_TOKEN_SECRET,
+        {
+            expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN
+        }
     );
 };
 

@@ -1,2 +1,4 @@
 node_modules
 .env
+TEST_REPORT_DETAIL.md
+test_api.js
