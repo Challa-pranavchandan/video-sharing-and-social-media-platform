@@ -24,6 +24,7 @@
     "express": "^5.2.1",
     "form-data": "^4.0.5",
     "jsonwebtoken": "^9.0.3",
+    "marked": "^18.0.4",
     "mongoose": "^9.6.2",
     "mongoose-aggregate-paginate-v2": "^1.1.4",
     "multer": "^2.1.1"
