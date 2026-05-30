@@ -4,11 +4,22 @@
 
 A full-stack video-sharing and social media platform built with Node.js, Express, MongoDB, and React.
 
+### 🚀 Live Demo
+**API Server:** https://video-sharing-and-social-media-platform.onrender.com
+- API Testing Guide: https://video-sharing-and-social-media-platform.onrender.com/
+- Health Check: https://video-sharing-and-social-media-platform.onrender.com/api/v1/healthcheck
+
 ## Project Structure
 - **/backend**: Express server with MongoDB integration.
 - **/frontend**: React + Vite application.
 
 ---
+
+## 🔗 Quick Links
+
+- **API Documentation:** https://video-sharing-and-social-media-platform.onrender.com/
+- **Postman Collection:** `backend/VideoSocialPlatform.postman_collection.json`
+- **GitHub Repo:** https://github.com/Challa-pranavchandan/video-sharing-and-social-media-platform
 
 ## Local Setup Instructions
 
@@ -42,6 +53,12 @@ A full-stack video-sharing and social media platform built with Node.js, Express
 4. Run the development server:
    ```bash
    npm run dev
+   # Server runs on: http://localhost:8000
+   ```
+
+   Or run production server:
+   ```bash
+   npm run start
    ```
 
 ### Frontend Setup
@@ -84,7 +101,11 @@ To integrate these APIs with the frontend, we recommend using **Axios**.
 import axios from 'axios';
 
 const apiClient = axios.create({
+    // Local testing:
     baseURL: 'http://localhost:8000/api/v1',
+    
+    // Or for deployed server:
+    // baseURL: 'https://video-sharing-and-social-media-platform.onrender.com/api/v1',
     withCredentials: true // Important for sending/receiving cookies (JWT)
 });
 

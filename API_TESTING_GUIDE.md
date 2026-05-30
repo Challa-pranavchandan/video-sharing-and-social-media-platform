@@ -75,6 +75,22 @@ The server starts on **`http://localhost:8000`** by default.
 
 ---
 
+## 🌐 Testing Environments
+
+You can test the API in two ways:
+
+### Local Testing
+- **URL:** `http://localhost:8000`
+- **Use Case:** Development & debugging
+- **Prerequisites:** Backend must be running locally (`npm run dev`)
+
+### Deployed Testing (Live Server)
+- **URL:** `https://video-sharing-and-social-media-platform.onrender.com`
+- **Use Case:** Testing production-ready code
+- **No prerequisites:** Server is always running on Render
+
+---
+
 ## 🔐 Environment Variables
 
 Create a `.env` file inside the `/backend` directory with the following keys:
@@ -111,7 +127,18 @@ CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 3. Select the file: `backend/VideoSocialPlatform.postman_collection.json`
 4. The collection appears with **9 folders** and **34 pre-configured requests**
 
-The collection uses **collection variables** — you only need to set `baseUrl` once (defaults to `http://localhost:8000/api/v1`).  
+The collection uses **collection variables** — you only need to set `baseUrl` once.
+
+**Choose your testing environment:**
+
+1. **For Local Testing:**
+   - Set `baseUrl` = `http://localhost:8000/api/v1`
+   - Ensure backend is running: `npm run dev`
+
+2. **For Deployed Testing (Live Server):**
+   - Set `baseUrl` = `https://video-sharing-and-social-media-platform.onrender.com/api/v1`
+   - No prerequisites needed
+
 After a successful **Login**, `accessToken`, `refreshToken`, `userId`, `videoId`, etc. are saved **automatically** by the built-in test scripts.
 
 ---
@@ -152,7 +179,12 @@ Run the requests in this order for a seamless end-to-end flow:
 
 ## 📖 API Reference
 
-**Base URL:** `http://localhost:8000/api/v1`
+### Base URLs
+
+| Environment | Base URL                                                             | Status |
+|-------------|----------------------------------------------------------------------|--------|
+| **Local**   | `http://localhost:8000/api/v1`                                      | Development |
+| **Deployed** | `https://video-sharing-and-social-media-platform.onrender.com/api/v1` | Production |
 
 > 🔒 = Requires Bearer Token in `Authorization` header (auto-handled by Postman collection)
 
