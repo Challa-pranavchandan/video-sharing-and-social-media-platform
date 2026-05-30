@@ -1,6 +1,6 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
-import { Tweet } from "../models/Tweet.model.js";
+import { Tweet } from "../models/tweet.model.js";
 import ApiResponse from "../utils/ApiRespone.js";
 import mongoose from "mongoose";
 

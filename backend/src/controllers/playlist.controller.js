@@ -1,6 +1,6 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
-import { Playlist } from "../models/Playlist.model.js";
+import { Playlist } from "../models/playlist.model.js";
 import ApiResponse from "../utils/ApiRespone.js";
 import mongoose from "mongoose";
 
