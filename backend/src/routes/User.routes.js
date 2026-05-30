@@ -12,7 +12,7 @@ import {
    updateuserCoverImage,
    getUserChannelProfile,
    getWatchHistory
-} from "../controllers/User.controller.js";
+} from "../controllers/user.controller.js";
 import {verifyJWT}  from "../middlewares/auth.middleware.js";
 
 const router = Router();
